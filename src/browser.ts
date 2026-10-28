@@ -1,8 +1,9 @@
-import { chromium, type BrowserContext, type Page } from 'playwright';
+import { chromium, type Browser, type BrowserContext, type Page } from 'playwright';
+import { startChrome, type RunningChrome } from './chrome.js';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { MakerWorldError } from './errors.js';
-import { API_BASE, type BrowserJson } from './api.js';
+import { API_BASE, USER_AGENT, type BrowserJson } from './api.js';
 
 const CHALLENGE_TITLE = 'Just a moment';
 const IDLE_MS = 10 * 60 * 1000;
@@ -20,21 +21,10 @@ export async function waitForChallenge(page: Page, timeoutMs = CHALLENGE_MS): Pr
   }
 }
 
-async function launch(profileDir: string, headless: boolean): Promise<BrowserContext> {
-  const opts = { headless, viewport: { width: 1280, height: 900 } };
-  try {
-    return await chromium.launchPersistentContext(profileDir, { ...opts, channel: 'chrome' });
-  } catch (chromeErr) {
-    try {
-      return await chromium.launchPersistentContext(profileDir, opts);
-    } catch {
-      throw new MakerWorldError('BROWSER_UNAVAILABLE', `Could not start Chrome or Chromium (${(chromeErr as Error).message.split('\n')[0]}). Run \`npx playwright install chromium\`.`);
-    }
-  }
-}
-
 export class BrowserSession implements BrowserJson {
   private ctx?: BrowserContext;
+  private browser?: Browser;
+  private chrome?: RunningChrome;
   private page?: Page;
   private starting?: Promise<Page>;
   private idle?: NodeJS.Timeout;
@@ -52,7 +42,9 @@ export class BrowserSession implements BrowserJson {
     this.touch();
     if (this.page && !this.page.isClosed()) return this.page;
     this.starting ??= (async () => {
-      this.ctx = await launch(this.profileDir, this.headless);
+      this.chrome = await startChrome(this.profileDir, this.headless, this.headless ? USER_AGENT : undefined);
+      this.browser = await chromium.connectOverCDP(this.chrome.endpoint);
+      this.ctx = this.browser.contexts()[0] ?? (await this.browser.newContext());
       const page = this.ctx.pages()[0] ?? (await this.ctx.newPage());
       await page.goto(API_BASE + '/en', { waitUntil: 'domcontentloaded' });
       await waitForChallenge(page);
@@ -92,17 +84,17 @@ export class BrowserSession implements BrowserJson {
 
   async close(): Promise<void> {
     if (this.idle) clearTimeout(this.idle);
-    const ctx = this.ctx;
-    this.ctx = undefined; this.page = undefined;
-    await ctx?.close().catch(() => {});
+    const { browser, chrome } = this;
+    this.ctx = undefined; this.page = undefined; this.browser = undefined; this.chrome = undefined;
+    await browser?.close().catch(() => {});
+    chrome?.proc.kill();
   }
 }
 
 export async function runLogin(profileDir = defaultProfileDir()): Promise<void> {
-  const ctx = await launch(profileDir, false);
-  const page = ctx.pages()[0] ?? (await ctx.newPage());
-  await page.goto(API_BASE + '/en', { waitUntil: 'domcontentloaded' });
-  console.error('Log in to MakerWorld in the browser window (and solve any Cloudflare check), then close the window.');
-  await new Promise<void>((resolve) => ctx.on('close', () => resolve()));
+  const chrome = await startChrome(profileDir, false);
+  console.error('Chrome opened. Go to https://makerworld.com, solve any Cloudflare check, log in, then close Chrome.');
+  console.error('(This is a normal Chrome window, not an automated one, so the check should pass.)');
+  await new Promise<void>((resolve) => chrome.proc.once('exit', () => resolve()));
   console.error(`Saved session to ${profileDir}`);
 }
