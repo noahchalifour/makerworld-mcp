@@ -13,7 +13,7 @@ describe('getDesign', () => {
     const d = await getDesign(1400000, { fetch, browser: noBrowser });
     expect(d.title).toContain('Honkai');
     const [url, init] = fetch.mock.calls[0] as unknown as [string, RequestInit];
-    expect(url).toBe('https://makerworld.com/api/v1/design-service/design/1400000');
+    expect(url).toBe('https://api.bambulab.com/v1/design-service/design/1400000');
     expect((init.headers as Record<string, string>)['User-Agent']).toMatch(/Chrome/);
   });
   it('maps 404 to MODEL_NOT_FOUND', async () => {

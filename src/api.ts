@@ -2,6 +2,8 @@ import { MakerWorldError } from './errors.js';
 import { parseDesign, type Design } from './parse.js';
 
 export const API_BASE = 'https://makerworld.com';
+/** Same service, but not behind the Cloudflare challenge that blocks Node's fetch on makerworld.com. */
+export const API_HOST = 'https://api.bambulab.com/v1';
 export const USER_AGENT =
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
 
@@ -24,13 +26,14 @@ export async function getDesign(
   deps: { fetch?: FetchLike; browser?: BrowserJson; retryDelayMs?: number } = {},
 ): Promise<Design> {
   const path = `/api/v1/design-service/design/${id}`;
+  const url = `${API_HOST}/design-service/design/${id}`;
   const doFetch = deps.fetch ?? fetch;
   const delay = deps.retryDelayMs ?? 2000;
 
-  let res = await doFetch(API_BASE + path, { headers: { 'User-Agent': USER_AGENT, Accept: 'application/json' } });
+  let res = await doFetch(url, { headers: { 'User-Agent': USER_AGENT, Accept: 'application/json' } });
   if (res.status === 429) {
     await new Promise((r) => setTimeout(r, delay));
-    res = await doFetch(API_BASE + path, { headers: { 'User-Agent': USER_AGENT, Accept: 'application/json' } });
+    res = await doFetch(url, { headers: { 'User-Agent': USER_AGENT, Accept: 'application/json' } });
   }
 
   const isHtml = (res.headers.get('content-type') ?? '').includes('text/html');
