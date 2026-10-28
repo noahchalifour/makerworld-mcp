@@ -1,5 +1,5 @@
 import { chromium, type Browser, type BrowserContext, type Page } from 'playwright';
-import { startChrome, type RunningChrome } from './chrome.js';
+import { openChromeForLogin, startChrome, type RunningChrome } from './chrome.js';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { MakerWorldError } from './errors.js';
@@ -92,9 +92,9 @@ export class BrowserSession implements BrowserJson {
 }
 
 export async function runLogin(profileDir = defaultProfileDir()): Promise<void> {
-  const chrome = await startChrome(profileDir, false);
-  console.error('Chrome opened. Go to https://makerworld.com, solve any Cloudflare check, log in, then close Chrome.');
+  const proc = await openChromeForLogin(profileDir);
+  console.error('Chrome opened on makerworld.com. Solve any Cloudflare check, log in (Google works), then quit Chrome completely (Cmd+Q).');
   console.error('(This is a normal Chrome window, not an automated one, so the check should pass.)');
-  await new Promise<void>((resolve) => chrome.proc.once('exit', () => resolve()));
+  await new Promise<void>((resolve) => proc.once('exit', () => resolve()));
   console.error(`Saved session to ${profileDir}`);
 }

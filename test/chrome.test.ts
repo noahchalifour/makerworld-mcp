@@ -8,6 +8,9 @@ describe('chromeArgs', () => {
     expect(a).toContain('--remote-debugging-port=0');
     expect(a.join(' ')).not.toMatch(/enable-automation|headless|disable-blink/);
   });
+  it('omits the debugging port for login', () => {
+    expect(chromeArgs('/p', false, undefined, false).join(' ')).not.toMatch(/remote-debugging/);
+  });
   it('adds headless and user agent only when asked', () => {
     const a = chromeArgs('/p', true, 'UA/1');
     expect(a).toContain('--headless=new');

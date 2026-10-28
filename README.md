@@ -45,7 +45,7 @@ Downloads need a MakerWorld login. They go through Google Chrome using the saved
 ## Limitations
 
 - **Downloads are not verified against a live logged-in account.** Everything else was tested live; the download flow is covered by unit tests with a documented-shape response, because testing it needs your credentials.
-- If downloads return `CLOUDFLARE_BLOCKED`, run `login` again (it opens a normal Chrome window), solve the check, log in, and close Chrome. Try `MAKERWORLD_HEADLESS=false` if headless still gets challenged. Close any other Chrome using the same profile first.
+- If downloads return `CLOUDFLARE_BLOCKED`, run `login` again (it opens a completely plain Chrome window with no debugging port, so Google sign-in works), solve the check, log in, and close Chrome. Try `MAKERWORLD_HEADLESS=false` if headless still gets challenged. Close any other Chrome using the same profile first.
 - Cloudflare rate limits bursts of requests (HTTP 429). The server retries once, then returns `RATE_LIMITED`.
 - NSFW search hits are filtered out.
 
