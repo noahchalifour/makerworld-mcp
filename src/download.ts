@@ -32,7 +32,7 @@ export async function downloadModel(req: DownloadRequest, deps: DownloadDeps): P
   const profile = req.format === '3mf' ? pickProfile(design, req.profileId ?? req.ref.profileId) : undefined;
   const apiPath = profile
     ? `/api/v1/design-service/instance/${profile.id}/f3mf?type=download`
-    : `/api/v1/design-service/design/${design.id}/model?type=download`;
+    : `/api/v1/design-service/design/${design.id}/model?modelType=all&type=download`;
 
   const { status, body } = await deps.browser.browserFetchJson(apiPath);
   const err = mapApiError(status, body);

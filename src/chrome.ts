@@ -30,7 +30,8 @@ export function chromeArgs(profileDir: string, headless: boolean, userAgent?: st
     `--user-data-dir=${profileDir}`,
     ...(debug ? ['--remote-debugging-port=0'] : []),
     '--no-first-run', '--no-default-browser-check',
-    ...(headless ? ['--headless=new', '--window-size=1280,900'] : []),
+    // Cloudflare rejects headless Chrome, so "hidden" means a real window parked off-screen.
+    ...(headless ? ['--window-position=-32000,-32000', '--window-size=1280,900'] : []),
     ...(userAgent ? [`--user-agent=${userAgent}`] : []),
     'about:blank',
   ];

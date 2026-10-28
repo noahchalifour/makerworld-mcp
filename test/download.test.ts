@@ -54,7 +54,7 @@ describe('downloadModel', () => {
     const d = deps();
     const r = await downloadModel({ ref: { id: 1400000 }, format: 'stl', destDir: dir }, d);
     expect(r.path.endsWith('1400000-honkai-star-rail-a-grounded-ascent-hueforge.zip')).toBe(true);
-    expect(d.browser.browserFetchJson).toHaveBeenCalledWith('/api/v1/design-service/design/1400000/model?type=download');
+    expect(d.browser.browserFetchJson).toHaveBeenCalledWith('/api/v1/design-service/design/1400000/model?modelType=all&type=download');
   });
   it('uses MAKERWORLD_DOWNLOAD_DIR when no destDir, creating it', async () => {
     const target = join(dir, 'nested', 'out');

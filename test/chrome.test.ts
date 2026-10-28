@@ -11,9 +11,10 @@ describe('chromeArgs', () => {
   it('omits the debugging port for login', () => {
     expect(chromeArgs('/p', false, undefined, false).join(' ')).not.toMatch(/remote-debugging/);
   });
-  it('adds headless and user agent only when asked', () => {
+  it('hides the window off-screen instead of using headless (Cloudflare rejects headless)', () => {
     const a = chromeArgs('/p', true, 'UA/1');
-    expect(a).toContain('--headless=new');
+    expect(a.join(' ')).not.toMatch(/headless/);
+    expect(a).toContain('--window-position=-32000,-32000');
     expect(a).toContain('--user-agent=UA/1');
   });
 });

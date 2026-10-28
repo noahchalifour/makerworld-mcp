@@ -3,7 +3,7 @@ import { openChromeForLogin, startChrome, type RunningChrome } from './chrome.js
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { MakerWorldError } from './errors.js';
-import { API_BASE, USER_AGENT, type BrowserJson } from './api.js';
+import { API_BASE, type BrowserJson } from './api.js';
 
 const CHALLENGE_TITLE = 'Just a moment';
 const IDLE_MS = 10 * 60 * 1000;
@@ -42,7 +42,7 @@ export class BrowserSession implements BrowserJson {
     this.touch();
     if (this.page && !this.page.isClosed()) return this.page;
     this.starting ??= (async () => {
-      this.chrome = await startChrome(this.profileDir, this.headless, this.headless ? USER_AGENT : undefined);
+      this.chrome = await startChrome(this.profileDir, this.headless, undefined);
       this.browser = await chromium.connectOverCDP(this.chrome.endpoint);
       this.ctx = this.browser.contexts()[0] ?? (await this.browser.newContext());
       const page = this.ctx.pages()[0] ?? (await this.ctx.newPage());
